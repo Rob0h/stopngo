@@ -37,6 +37,10 @@ html, body {
   height: 93%;
   overflow: auto;
 }
+#yelpImage {
+  height: 30px;
+  width: 129px;
+}
 #inputDir {
   width: 400px;
   height: 120px;

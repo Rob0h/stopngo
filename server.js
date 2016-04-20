@@ -57,15 +57,6 @@ var server = http.createServer(function(request, response) {
         response.end(file, "utf-8");
       });
     }
-    else if (path == "/images/yelp_powered_btn_red.png") {
-      fs.readFile("./images/yelp_powered_btn_red.png", function(err, file){
-        if (err) {
-          return;
-        }
-        response.writeHead(200, {"Content-Type": "image/gif"});
-        response.end(file, "binary");
-      });
-    }
     else {
       fs.readFile("./app/index.html", function(err, file){
         if (err) {
