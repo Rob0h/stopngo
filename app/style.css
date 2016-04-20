@@ -1,0 +1,98 @@
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+#mapContainer {
+  position: relative;
+}
+#map {
+  margin-top: 10px;
+  height: 400px;
+  width: 600px;
+  float: left;
+}
+#overMap {
+  margin: 0 auto;
+  position: absolute;
+  top: 348px;
+  left: 69px;
+  z-index: 99;
+}
+#textDirContainer {
+  margin-left: 18px;
+  float:left;
+  width: 350px;
+  height: 94.4%;
+}
+#textDirections {
+  width: 330px;
+  height: 100%;
+  overflow: auto;
+}
+#inputAndResultsDiv {
+  margin-top: 10px;
+  float: left;
+  height: 93%;
+  overflow: auto;
+}
+#inputDir {
+  width: 400px;
+  height: 120px;
+}
+.numBox {
+  width: 20px;
+}
+.stringBox {
+  width: 50px;
+}
+#resultsContainer {
+  float: right;
+  width: 410px;
+}
+#resultsContent {
+  width: 400px;
+}
+.yelpEntryClass {
+  display: table-row;
+}
+.businessNameDivClass {
+  padding-left: 5px;
+}
+.ratingDivClass {
+  padding-left: 5px;
+}
+.snippetTextDivClass {
+  padding-left: 5px;
+}
+.ratingClass {
+  float: left;
+}
+.reviewCountClass {
+  font-size: small;
+}
+.snippetContainerClass {
+  float: right;
+  width: 260px;
+  height: 30px;
+}
+.snippetImgClass {
+  height: 30px;
+  width: 30px;
+}
+.snippetTextClass { 
+  margin-top: 0px;
+  padding-left: 5px;
+  font-size: small;
+}
+.businessDivClass {
+  display: table-cell;
+  vertical-align: top;
+}
+.readMoreLinkClass {
+  font-size: small;
+}
+.btnAddToRouteClass {
+  margin-left: 5px;
+}
