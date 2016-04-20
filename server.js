@@ -41,29 +41,34 @@ var server = http.createServer(function(request, response) {
     else if (path == "/app/app.js") {
       fs.readFile("./app/app.js", function(err, file){
         if (err) {
-          console.log("Client side JS could not be loaded due to" + err);
-          return;
+          console.log("Client side JS could not be loaded due to: " + err);
         }
-        response.writeHead(200, {"Content-Type": "json"});
-        response.end(file, "utf-8");
+        else {
+          response.writeHead(200, {"Content-Type": "json"});
+          response.end(file, "utf-8");
+        }
       });
     }
     else if (path == "/app/style.css") {
       fs.readFile("./app/style.css", function(err, file){
         if (err) {
-          return;
+          console.log("Client side CSS could not be loaded due to: " + err);
         }
-        response.writeHead(200, {"Content-Type": "text/css"});
-        response.end(file, "utf-8");
+        else {
+          response.writeHead(200, {"Content-Type": "text/css"});
+          response.end(file, "utf-8");
+        }
       });
     }
     else {
       fs.readFile("./app/index.html", function(err, file){
         if (err) {
-          return;
+          console.log("Client index could not be loaded due to: " + err);
         }
-        response.writeHead(200, {"Content-Type": "html"});
-        response.end(file, "utf-8");
+        else {
+          response.writeHead(200, {"Content-Type": "html"});
+          response.end(file, "utf-8");
+        }
       });
     }
 });
