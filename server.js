@@ -6,10 +6,10 @@ var http = require('http');
 var results;
 
 var yelp = new Yelp({
-  consumer_key: "6Tl7j5uOlP81bed9buksBQ",
-  consumer_secret: "kv4EGn8hvaahmd7h1-2wayzIgBE",
-  token: "Gkvn649GmQldaXqQ5QNdyn6bnbjiPJ-Q",
-  token_secret: "6Szc-bPewHz5bbuHScWIF1mt-b0"
+  consumer_key: ,
+  consumer_secret: ,
+  token: ,
+  token_secret: 
 })
 
 function searchYelpFor(searchTerms, callback) {
