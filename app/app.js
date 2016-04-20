@@ -11,7 +11,10 @@ var yelpResults;
 var wayPoints = [];
 
 
-// Creates a new Geocoder, DirectionsSerivce, and DirectionsRenderer. Also, creates a new Map centered at Irvine, CA
+/** initMap() creates a geocoder, router, and directionsDisplay for
+  * maps API. Centers map at current position if browser supports 
+  * geolocation. If not, centers the map at Irvine, CA.
+  */ 
 function initMap() {
   geocoder = new google.maps.Geocoder();
   router = new google.maps.DirectionsService();
@@ -33,6 +36,10 @@ function initMap() {
   directionsDisplay.setMap(map);
 }
 
+/** clearMarkers() iterates through the markers array and uses 
+  * setMap() to erase its presence from the map and also clears the
+  * entire markers array.
+  */
 function clearMarkers() {
   if (markers.length > 0) {
     for (var i = 0; i < markers.length; i ++) {
@@ -41,7 +48,13 @@ function clearMarkers() {
     markers = [];
   }
 }
-// Based on the inputs to fields start and stop, getDirections creates a request for the router object to find the directions from start to stop. The result is then displayed on the map object via directionsDisplay, the directions renderer.
+
+/** getDirections(waypts) creates a request object which is passed 
+  * to router to retrieve the DirectionsResult between the user
+  * inputted start and stop.
+  * The resulting DirectionsResult is rendered in the div- 
+  * textDirections. If the router fails, an alert is displayed.
+  */
 function getDirections(waypts) {
   if (start !== document.getElementById("start").value || stop !== document.getElementById("stop").value) {
     clearMarkers();
@@ -67,6 +80,10 @@ function getDirections(waypts) {
   });
 }
 
+/** sumOf(array, property, property1) iterates through the array
+  * and takes the sum of the array.property.property1 values if
+  * property and property1 are true.
+  */
 function sumOf(array, property, property1) {
   var sum = 0;
   for (var i = 0; i < array.length; i++){
@@ -82,7 +99,18 @@ function sumOf(array, property, property1) {
   return sum;
 }
 
-// Based on the numOfStops, places markers at the approximate points based on the total distance calculated from the leg. distanceTraveled is increased based on the the distance of the step and the number of points in the path array. Once the distance is increased past the calculated stop point, the marker is placed.
+/** getStoppoints() calculates the totalDistance of the route by 
+  * using sumOf() to iterate through all the legs.distance.value of
+  * the route. The stops array is then created by calculating the 
+  * distance needed to travel for each stop with numOfStops. 
+  * The steps array is then created by combining all the steps for
+  * each leg of the route.
+  * Each element is then iterated through in the steps array and
+  * the distanceTraveled incremented based on pathDistance until
+  * the value passes the distanceToTravel, which is from the stops
+  * array. When distanceToTravel is passed, a marker is added to the
+  * markers array at steps[i].path[j].
+  */
 function getStoppoints() {
   if (typeof directionsResults == 'undefined') {
     alert('Please get directions before checking for stops.');
@@ -135,7 +163,10 @@ function getStoppoints() {
   }
 }
 
-// getGeocode retrieves the lat and lng of the input in field geoCode.
+/** getGeocode(inputGeocode, infoWindow) retrieves the 
+  * formatted_address of the inputGeocode and sets the infoWindow
+  * to display the returned address.
+  */
 function reverseGeocode(inputGeocode, infoWindow) {
   geocoder.geocode( { 'location': inputGeocode}, function(results, status) {
     if (status == google.maps.GeocoderStatus.OK) {
@@ -147,7 +178,11 @@ function reverseGeocode(inputGeocode, infoWindow) {
   });
 } 
 
-//creates yelp query based on input keyword and stop location
+/** getYelp() creates a GET request with xmlhttp and the user
+  * inputted yelpSearchTerm and stopToSearch and returns the 
+  * result in yelpResults, which is then displayed using 
+  * displayResults().
+  */
 function getYelp() {
   xmlhttp = new XMLHttpRequest();
   var yelpSearchTerm = document.getElementById("yelpSearchTerm").value;
@@ -167,6 +202,12 @@ function getYelp() {
   }
 }
 
+/** addStop(stopNumber) retrieves the address from the yelpResults
+  * object returned from getYelp() based on the stopNumber and 
+  * stores the address in stopAddress. stopAddress is then pushed
+  * into the wayPoints array which is then pushed to getDirections()
+  * to update the directions.
+  */
 function addStop(stopNumber) {
   var stopAddress = "";
   for (var i = 0; i < yelpResults.businesses[stopNumber].location.display_address.length; i++) {
@@ -178,6 +219,10 @@ function addStop(stopNumber) {
   getDirections(wayPoints);
 }
 
+/** createElement(elementType,className,id,innerHTML) creates a
+  * HTML with tag - elementType, class - className, id - id, 
+  * innerHTML - innerHTML.
+  */
 function createElement(elementType, className, id, innerHTML) {
   var element = document.createElement(elementType);
   if (className) element.className = className;
@@ -186,71 +231,99 @@ function createElement(elementType, className, id, innerHTML) {
   return element;
 }
 
+/** displayResults(searchResults) displays the searchResults
+  * in the resultsContent div in resultsContainer.
+  */
 function displayResults(searchResults) { 
   while (document.getElementById("resultsContent").firstChild) {
     document.getElementById("resultsContent").removeChild(document.getElementById("resultsContent").firstChild);
   }
   for (var i = 0; i < searchResults.businesses.length; i++) {
-    //yelpEntry div
+    /** yelpEntry div is the highest level div to hold searchResults
+      * in resultsContent.
+      */
     var yelpEntry = createElement("div", "yelpEntryClass", "yelpEntry"+i);
     document.getElementById("resultsContent").appendChild(yelpEntry);
-      //yelp image container
+
+      /*yelpImageContainer div to hold the yelpImage
+      */
       var yelpImageContainer = createElement("div", "yelpImageContainerClass", "yelpImageContainer"+i);
       document.getElementById("yelpEntry"+i).appendChild(yelpImageContainer);
+
+        /*yelpImage is the yelp business image
+        */
+        var yelpImage = createElement("img");
+        yelpImage.src = searchResults.businesses[i].image_url;
+        document.getElementById("yelpImageContainer"+i).appendChild(yelpImage);
       
-      //yelp business image
-      var yelpImage = createElement("img");
-      yelpImage.src = searchResults.businesses[i].image_url;
-      document.getElementById("yelpImageContainer"+i).appendChild(yelpImage);
-      
-      //creates div to house
+      /** businessDiv holds businessnameDiv, ratingDiv,
+        * and snippetTextDiv.
+        */ 
       var businessDiv = createElement("div", "businessDivClass", "businessDiv"+i);
       document.getElementById("yelpEntry"+i).appendChild(businessDiv);
 
-      var businessNameDiv = createElement("div", "businessNameDivClass", "businessNameDiv"+i);
-      document.getElementById("businessDiv"+i).appendChild(businessNameDiv);
+        /** businessNameDiv holds businessName
+          */
+        var businessNameDiv = createElement("div", "businessNameDivClass", "businessNameDiv"+i);
+        document.getElementById("businessDiv"+i).appendChild(businessNameDiv);
+        /** ratingDiv holds rating and reviewCount
+          */
+        var ratingDiv = createElement("div", "ratingDivClass", "ratingDiv"+i);
+        document.getElementById("businessDiv"+i).appendChild(ratingDiv);
+        /** snippetTextDiv holds snippetImg and snippetContainer
+          */
+        var snippetTextDiv = createElement("div", "snippetTextClass", "snippetTextDiv"+i);
+        document.getElementById("businessDiv"+i).appendChild(snippetTextDiv);
 
-      var ratingDiv = createElement("div", "ratingDivClass", "ratingDiv"+i);
-      document.getElementById("businessDiv"+i).appendChild(ratingDiv);
-
-      var snippetTextDiv = createElement("div", "snippetTextClass", "snippetTextDiv"+i);
-      document.getElementById("businessDiv"+i).appendChild(snippetTextDiv);
-
-      //name of yelp business, and acts as a link to the yelp business page
+      /** businessName is both the business name and acts as
+        * a link to the business' yelp page.
+        */ 
       var businessName = createElement("a","","business"+i, searchResults.businesses[i].name);
       businessName.href = searchResults.businesses[i].url;
       businessName.target = "_blank";
       document.getElementById("businessNameDiv"+i).appendChild(businessName);
       
-      //picture of the yelp star rating
+      /** rating is the yelp review stars image from the returned 
+        * searchResults object.
+        */
       var rating = createElement("img", "ratingClass");
       rating.src = searchResults.businesses[i].rating_img_url;
       document.getElementById("ratingDiv"+i).appendChild(rating);
 
-      //review count
+      /** reviewCount is a p element holding the number of yelp
+        * reviews of the business.
+        */
       var reviewCount = createElement("p", "reviewCountClass", "", searchResults.businesses[i].review_count + " reviews");
       document.getElementById("ratingDiv"+i).appendChild(reviewCount);
 
-      //snippet image
+      /** snippetImg is the image of the yelp review snippet
+        */
       var snippetImg = createElement("img", "snippetImgClass");
       snippetImg.src = searchResults.businesses[i].snippet_image_url;
       document.getElementById("snippetTextDiv"+i).appendChild(snippetImg);
       
-      //snippet text container
+      /** snippetContainer is the div that contains snippetText
+        */
       var snippetContainer = createElement("div", "snippetContainerClass", "snippetContainer"+i);
       document.getElementById("snippetTextDiv"+i).appendChild(snippetContainer);
       
-      //snippetText
+      /** snippetText is the snippet of the yelp review that has been
+        * shortened with slice to only include 61 chars.
+        */
       var snippetText = createElement("p", "snippetTextClass", "snippetText"+i, searchResults.businesses[i].snippet_text.slice(0,60));
       document.getElementById("snippetContainer"+i).appendChild(snippetText);
 
-      //readMoreLink
+      /** readMoreLink adds a link to the business yelp page at
+        * the end of snippetText.
+        */
       var readMoreLink = createElement("a", "readMoreLinkClass", "", "...read more");
       readMoreLink.href = searchResults.businesses[i].url;
       readMoreLink.target = "_blank";
       document.getElementById("snippetText"+i).appendChild(readMoreLink);
       
-      //adds a route to button
+      /** btnAddToRoute is a button that runs function addStop() when
+        * clicked.
+        */
       var btnAddToRoute = createElement("button", "btnAddToRouteClass", "", "Add To Route");
       btnAddToRoute.value = i;
       btnAddToRoute.addEventListener("click", function () {
