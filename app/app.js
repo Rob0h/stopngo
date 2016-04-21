@@ -191,7 +191,7 @@ function getYelp() {
     alert("Stop does not exist. Please select another stop.");
   }
   else { 
-    xmlhttp.open("GET","http://localhost:8000/search?query=" + yelpSearchTerm + "+" + markers[stopToSearch-1].position.lat() + "," + markers[stopToSearch-1].position.lng(), true);
+    xmlhttp.open("GET","/search?query=" + yelpSearchTerm + "+" + markers[stopToSearch-1].position.lat() + "," + markers[stopToSearch-1].position.lng(), true);
     xmlhttp.onreadystatechange=function(){
       if (xmlhttp.readyState == 4 && xmlhttp.status == 200){
         yelpResults = JSON.parse(xmlhttp.responseText);
