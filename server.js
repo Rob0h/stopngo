@@ -73,6 +73,6 @@ var server = http.createServer(function(request, response) {
       });
     }
 });
-server.listen(process.env.port || 8000, function () {
+server.listen(process.env.PORT || 8000, function () {
   console.log("Server is listening...");
 });
