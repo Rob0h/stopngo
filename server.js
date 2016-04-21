@@ -2,6 +2,7 @@ var http = require('http');
     Yelp = require('yelp');
       fs = require('fs');
      url = require('url');
+ express = require('express');
 
 var results;
 
@@ -72,5 +73,5 @@ var server = http.createServer(function(request, response) {
       });
     }
 });
-server.listen(8000);
+server.listen(process.env.port || 8000);
 console.log('Server is listening...')
