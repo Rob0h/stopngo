@@ -192,7 +192,7 @@ function getYelp() {
   }
   else { 
     xmlhttp.open("GET","/search?query=" + yelpSearchTerm + "+" + markers[stopToSearch-1].position.lat() + "," + markers[stopToSearch-1].position.lng(), true);
-    xmlhttp.onreadystatechange=function(){
+    xmlhttp.onreadystatechange = function () { 
       if (xmlhttp.readyState == 4 && xmlhttp.status == 200){
         yelpResults = JSON.parse(xmlhttp.responseText);
         displayResults(JSON.parse(xmlhttp.responseText));
@@ -202,6 +202,39 @@ function getYelp() {
   }
 }
 
+/** saveRoute(saveContent) writes start/stop and waypts to routes.txt
+  */
+function saveRoute() {
+  var saveContent = {
+    start: start, 
+    stop: stop,
+    waypts: wayPoints
+  };
+  saveContent = JSON.stringify(saveContent);
+  console.log(saveContent);
+  console.log(JSON.parse(saveContent));
+  xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("POST","/routes.txt", true);
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+      
+    }
+  }
+  xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+  xmlhttp.send(saveContent);
+}
+
+function getRoute(val) {
+  xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET","/search?route=" + val, true);
+  xmlhttp.onreadystatechange = function() {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+      returnedRoute = JSON.parse(xmlhttp.responseText);
+      console.log(returnedRoute);
+    }
+  }
+  xmlhttp.send();
+}
 /** addStop(stopNumber) retrieves the address from the yelpResults
   * object returned from getYelp() based on the stopNumber and 
   * stores the address in stopAddress. stopAddress is then pushed
