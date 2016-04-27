@@ -14,8 +14,7 @@ function searchYelpFor(searchTerms, callback) {
       console.log("Yelp API keys were unable to be read due to:" + err);
     }
     else {
-      var yelpKeys = JSON.parse(file);
-      console.log(yelpKeys.consumer_secret);
+      var appKeys = JSON.parse(file);
       var yelp = new Yelp({
         consumer_key: yelpKeys.consumer_key,
         consumer_secret: yelpKeys.consumer_secret,
@@ -48,6 +47,19 @@ var server = http.createServer(function(request, response) {
         response.end();
       });
     }
+    else if (path == "/gMapsKey") {
+      fs.readFile("./config.txt", function(err,file) {
+        if(err) {
+          console.log("Google Maps API key was unable to be read due to: " + err);
+        }
+        else {
+          var appKeys = JSON.parse(file);
+          var gMapsKey = appKeys.gMaps_key;
+          response.writeHead(200, {"Content-Type": "json"});
+          response.end(gMapsKey, "utf-8");
+        }
+      })
+    }
     /** Writes request into routes.txt file as a string
       */
     else if (path == "/routes.txt") {
@@ -64,7 +76,11 @@ var server = http.createServer(function(request, response) {
         if (err) {
           console.log("Failed to write to txt due to:" + err);
         }
-        else console.log("File written");
+        else {
+          response.writeHead(200);
+          response.end();
+          console.log("File written");
+        }
       });
     }
     /** Loads client side js
