@@ -16,10 +16,10 @@ function searchYelpFor(searchTerms, callback) {
     else {
       var appKeys = JSON.parse(file);
       var yelp = new Yelp({
-        consumer_key: yelpKeys.consumer_key,
-        consumer_secret: yelpKeys.consumer_secret,
-        token: yelpKeys.token,
-        token_secret: yelpKeys.token_secret
+        consumer_key: appKeys.consumer_key,
+        consumer_secret: appKeys.consumer_secret,
+        token: appKeys.token,
+        token_secret: appKeys.token_secret
       });
       yelp.search(searchTerms)
         .then(function(data) {

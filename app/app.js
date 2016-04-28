@@ -106,16 +106,9 @@ function getDirections(waypts) {
   */
 function sumOf(array, property, property1) {
   var sum = 0;
-  for (var i = 0; i < array.length; i++){
-    var arrayVal = array[i];
-    if (property) {
-      var arrayVal = arrayVal[property];
-      if (property1) {
-        var arrayVal = arrayVal[property1];
-      }
-    }
-    sum += arrayVal;
-  }
+  array.forEach(function(element, index, array) {
+    sum += element[property][property1];
+  })
   return sum;
 }
 
