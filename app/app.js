@@ -10,6 +10,9 @@ var directionsResults;
 var yelpResults;
 var wayPoints = [];
 
+/** loadApp() requests the google maps API key from config.txt and 
+  * loads the google maps script.
+  */
 function loadApp() {
   var gMaps = document.createElement("script");
   var xmlhttp = new XMLHttpRequest();
