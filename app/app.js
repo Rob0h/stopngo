@@ -10,6 +10,25 @@ var directionsResults;
 var yelpResults;
 var wayPoints = [];
 
+/** loadApp() requests the google maps API key from config.txt and 
+  * loads the google maps script.
+  */
+function loadApp() {
+  var gMaps = document.createElement("script");
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET", "/gMapsKey", true);
+  var gMapsKey;
+  xmlhttp.onreadystatechange = function() {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+      gMapsKey = xmlhttp.responseText;
+      gMaps.src = "https://maps.googleapis.com/maps/api/js?key=" + gMapsKey + "&callback=initMap";
+      document.getElementsByTagName("body")[0].appendChild(gMaps);
+      initMap();
+    }
+    else console.log("Google Maps failed to load.");
+  };
+  xmlhttp.send();
+}
 
 /** initMap() creates a geocoder, router, and directionsDisplay for
   * maps API. Centers map at current position if browser supports 
@@ -70,6 +89,7 @@ function getDirections(waypts) {
   };
   router.route(request, function(results, status){
     if (status == google.maps.DirectionsStatus.OK) {
+      console.log(results);
       directionsResults = results;
       directionsDisplay.setDirections(results);
       directionsDisplay.setPanel(document.getElementById("textDirections"));
@@ -148,6 +168,7 @@ function getStoppoints() {
       position: steps[i].path[j],
       map: map,
       draggable: true,
+      animation: google.maps.Animation.DROP,
       label: (k+1).toString()
     }));
     var infoWindow = new google.maps.InfoWindow({
@@ -191,15 +212,55 @@ function getYelp() {
     alert("Stop does not exist. Please select another stop.");
   }
   else { 
+    markers[stopToSearch-1].setAnimation(google.maps.Animation.BOUNCE);
     xmlhttp.open("GET","/search?query=" + yelpSearchTerm + "+" + markers[stopToSearch-1].position.lat() + "," + markers[stopToSearch-1].position.lng(), true);
-    xmlhttp.onreadystatechange=function(){
+    xmlhttp.onreadystatechange = function () { 
       if (xmlhttp.readyState == 4 && xmlhttp.status == 200){
         yelpResults = JSON.parse(xmlhttp.responseText);
         displayResults(JSON.parse(xmlhttp.responseText));
+        setTimeout(function() {
+          markers[stopToSearch-1].setAnimation(null);
+        }, 1000);
+        
       }
     }
   xmlhttp.send();
   }
+}
+
+/** saveRoute(saveContent) writes start/stop and waypts to routes.txt
+  */
+function saveRoute(routeNum) {
+  var saveContent = {
+    routeNum: routeNum,
+    start: start, 
+    stop: stop,
+    waypts: wayPoints
+  };
+  saveContent = JSON.stringify(saveContent);
+  console.log(saveContent);
+  console.log(JSON.parse(saveContent));
+  xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("POST","/routes.txt", true);
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+      alert('Directions saved successfully');
+    }
+  }
+  xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+  xmlhttp.send(saveContent);
+}
+
+function getRoute(routeNum) {
+  xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET","/search?route=" + val, true);
+  xmlhttp.onreadystatechange = function() {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+      returnedRoute = JSON.parse(xmlhttp.responseText);
+      console.log(returnedRoute);
+    }
+  }
+  xmlhttp.send();
 }
 
 /** addStop(stopNumber) retrieves the address from the yelpResults

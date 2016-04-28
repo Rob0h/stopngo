@@ -35,7 +35,6 @@ html, body {
   margin-top: 10px;
   float: left;
   height: 93%;
-  overflow: auto;
 }
 #yelpImage {
   height: 30px;
@@ -53,7 +52,9 @@ html, body {
 }
 #resultsContainer {
   float: right;
+  height: 81%;
   width: 410px;
+  overflow: auto;
 }
 #resultsContent {
   width: 400px;
