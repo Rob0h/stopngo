@@ -5,24 +5,25 @@ html, body {
   padding: 0;
 }
 #mapContainer {
-  position: relative;
+  height: 100%;
+  width: 68%;
+  float: left;
 }
 #map {
-  margin-top: 10px;
-  height: 400px;
-  width: 600px;
+  height: 100%;
+  width: 100%;
   float: left;
 }
 #overMap {
   margin: 0 auto;
   position: absolute;
-  top: 348px;
-  left: 69px;
+  top: 90%;
+  left: 7%;
   z-index: 99;
 }
 #textDirContainer {
   margin-left: 18px;
-  float:left;
+  float: right;
   width: 350px;
   height: 94.4%;
 }
@@ -32,9 +33,9 @@ html, body {
   overflow: auto;
 }
 #inputAndResultsDiv {
-  margin-top: 10px;
-  float: left;
-  height: 93%;
+  margin-top: 5px;
+  float: right;
+  height: 95%;
 }
 #yelpImage {
   height: 30px;
@@ -42,7 +43,7 @@ html, body {
 }
 #inputDir {
   width: 400px;
-  height: 120px;
+  height: 151px;
 }
 .numBox {
   width: 20px;

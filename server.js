@@ -41,7 +41,7 @@ var server = http.createServer(function(request, response) {
       response.writeHead(200, {"Content-Type": "json"});
       var query = url.parse(request.url,true).query;
       var queryTerms = query.query.split(" ");
-      var searchTerms = {term: queryTerms[0], ll: queryTerms[1]};
+      var searchTerms = {term: queryTerms[0], ll: queryTerms[1], sort: queryTerms[2]};
       searchYelpFor(searchTerms, function(results) {
         response.write(JSON.stringify(results));
         response.end();

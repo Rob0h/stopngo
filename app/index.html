@@ -15,8 +15,8 @@
       <input type= "button" value= "Get Directions" onclick= "getDirections()">
       </div>
     </div>
-    <div id="textDirContainer">
-      <div id= "textDirections"> </div>
+    <!--<div id="textDirContainer">
+      <div id= "textDirections"> </div>-->
     </div>
     <div id= "inputAndResultsDiv">
       <div id= "inputDir">
@@ -28,6 +28,13 @@
           at stop # <input id="stopToSearch" type= "number" value= 1 class="numBox"> 
           <input type="button" value="Go!" onclick="getYelp()">
           <input type="button" value="Save" onclick="saveRoute()">
+        </p>
+        <p> Sort by: 
+          <select id = "sortBy">
+            <option value = 0> Default </option>
+            <option value = 1> Distance </option>
+            <option value = 2> Rating </option>
+          </select>
         </p>
       </div>
       <div id= "resultsContainer">

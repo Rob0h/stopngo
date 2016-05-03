@@ -7,7 +7,11 @@ var stop;
 var markers = [];
 var stopPoints;
 var directionsResults;
+
+/** yelpResults holds the results from the yelp query
+  */
 var yelpResults;
+
 var wayPoints = [];
 
 /** loadApp() requests the google maps API key from config.txt and 
@@ -23,9 +27,10 @@ function loadApp() {
       gMapsKey = xmlhttp.responseText;
       gMaps.src = "https://maps.googleapis.com/maps/api/js?key=" + gMapsKey + "&callback=initMap";
       document.getElementsByTagName("body")[0].appendChild(gMaps);
-      initMap();
+      gMaps.onload = function () {
+        initMap();
+      }
     }
-    else console.log("Google Maps failed to load.");
   };
   xmlhttp.send();
 }
@@ -89,10 +94,9 @@ function getDirections(waypts) {
   };
   router.route(request, function(results, status){
     if (status == google.maps.DirectionsStatus.OK) {
-      console.log(results);
       directionsResults = results;
       directionsDisplay.setDirections(results);
-      directionsDisplay.setPanel(document.getElementById("textDirections"));
+      //directionsDisplay.setPanel(document.getElementById("textDirections"));
     }
     else {
        alert("Directions query was unsuccessful for the following reasons: " + status);
@@ -128,52 +132,52 @@ function getStoppoints() {
   if (typeof directionsResults == 'undefined') {
     alert('Please get directions before checking for stops.');
   }
-  clearMarkers();
-  var totalDistance = sumOf(directionsResults.routes[0].legs, "distance", "value");
-  var numOfStops = Number(document.getElementById('numOfStops').value);
-  var stops = [];
-  for (var i = 1; i < numOfStops+1; i++) {
-    stops.push((totalDistance/(numOfStops+1))*i);
-  }
-  var distanceTraveled = 0;
-  var steps = []; 
-  for (var i = 0; i < directionsResults.routes[0].legs.length; i++) {
-    for (var j = 0; j < directionsResults.routes[0].legs[i].steps.length; j++) {
-    steps.push(directionsResults.routes[0].legs[i].steps[j]);
-    }
-  }
-  var i = 0;
-  var j = 0;
-  for (var k = 0; k < numOfStops; k++) {
-    distanceToTravel = stops[k];
-    while (distanceTraveled < distanceToTravel) {
-      var pathDistance = steps[i].distance.value/(steps[i].path.length);
-      distanceTraveled += pathDistance;
-      if (j < steps[i].path.length-1) {
-        j++;
-      }
-      else if (j == steps[i].path.length-1 && i < steps.length){
-        i++;
-        j = 0;
-      }
-    }
-    markers.push(new google.maps.Marker({
-      position: steps[i].path[j],
-      map: map,
-      draggable: true,
-      animation: google.maps.Animation.DROP,
-      label: (k+1).toString()
-    }));
-    var infoWindow = new google.maps.InfoWindow({
-    });
-    markers[k].addListener("click", function() {
-      reverseGeocode(this.position, infoWindow);
-      infoWindow.open(map, this);
-    });
-    markers[k].addListener("dragend", function() {
-      reverseGeocode(this.position, infoWindow);
-      infoWindow.open(map, this);
-    });
+  else {
+        clearMarkers();
+        var totalDistance = sumOf(directionsResults.routes[0].legs, "distance", "value");
+        var numOfStops = Number(document.getElementById('numOfStops').value);
+        var stops = [];
+        for (var i = 1; i < numOfStops+1; i++) {
+          stops.push((totalDistance/(numOfStops+1))*i);
+        }
+        var distanceTraveled = 0;
+        var steps = []; 
+        for (var i = 0; i < directionsResults.routes[0].legs.length; i++) {
+          steps = steps.concat(directionsResults.routes[0].legs[i].steps);
+        }
+        var i = 0;
+        var j = 0;
+        for (var k = 0; k < numOfStops; k++) {
+          distanceToTravel = stops[k];
+          while (distanceTraveled < distanceToTravel) {
+            var pathDistance = steps[i].distance.value/(steps[i].path.length);
+            distanceTraveled += pathDistance;
+            if (j < steps[i].path.length-1) {
+              j++;
+            }
+            else if (j == steps[i].path.length-1 && i < steps.length){
+              i++;
+              j = 0;
+            }
+          }
+          markers.push(new google.maps.Marker({
+            position: steps[i].path[j],
+            map: map,
+            draggable: true,
+            animation: google.maps.Animation.DROP,
+            label: (k+1).toString()
+          }));
+          var infoWindow = new google.maps.InfoWindow({
+          });
+          markers[k].addListener("click", function() {
+            reverseGeocode(this.position, infoWindow);
+            infoWindow.open(map, this);
+          });
+          markers[k].addListener("dragend", function() {
+            reverseGeocode(this.position, infoWindow);
+            infoWindow.open(map, this);
+          });
+        }
   }
 }
 
@@ -205,12 +209,14 @@ function getYelp() {
     alert("Stop does not exist. Please select another stop.");
   }
   else { 
+    var sortVal = document.getElementById("sortBy").value;
     markers[stopToSearch-1].setAnimation(google.maps.Animation.BOUNCE);
-    xmlhttp.open("GET","/search?query=" + yelpSearchTerm + "+" + markers[stopToSearch-1].position.lat() + "," + markers[stopToSearch-1].position.lng(), true);
+    xmlhttp.open("GET","/search?query=" + yelpSearchTerm + "+" + markers[stopToSearch-1].position.lat() + "," + markers[stopToSearch-1].position.lng() + "+" + sortVal, true);
     xmlhttp.onreadystatechange = function () { 
       if (xmlhttp.readyState == 4 && xmlhttp.status == 200){
         yelpResults = JSON.parse(xmlhttp.responseText);
-        displayResults(JSON.parse(xmlhttp.responseText));
+        displayResults(yelpResults);
+        populateResults(yelpResults);
         setTimeout(function() {
           markers[stopToSearch-1].setAnimation(null);
         }, 1000);
@@ -306,8 +312,7 @@ function displayResults(searchResults) {
 
         /*yelpImage is the yelp business image
         */
-        var yelpImage = createElement("img");
-        yelpImage.src = searchResults.businesses[i].image_url;
+        var yelpImage = createElement("img", "", "yelpImg"+i);
         document.getElementById("yelpImageContainer"+i).appendChild(yelpImage);
       
       /** businessDiv holds businessnameDiv, ratingDiv,
@@ -333,27 +338,24 @@ function displayResults(searchResults) {
         * a link to the business' yelp page.
         */ 
       var businessName = createElement("a","","business"+i, searchResults.businesses[i].name);
-      businessName.href = searchResults.businesses[i].url;
       businessName.target = "_blank";
       document.getElementById("businessNameDiv"+i).appendChild(businessName);
       
       /** rating is the yelp review stars image from the returned 
         * searchResults object.
         */
-      var rating = createElement("img", "ratingClass");
-      rating.src = searchResults.businesses[i].rating_img_url;
+      var rating = createElement("img", "ratingClass", "rating"+i);
       document.getElementById("ratingDiv"+i).appendChild(rating);
 
       /** reviewCount is a p element holding the number of yelp
         * reviews of the business.
         */
-      var reviewCount = createElement("p", "reviewCountClass", "", searchResults.businesses[i].review_count + " reviews");
+      var reviewCount = createElement("p", "reviewCountClass", "reviewCount"+i, searchResults.businesses[i].review_count + " reviews");
       document.getElementById("ratingDiv"+i).appendChild(reviewCount);
 
       /** snippetImg is the image of the yelp review snippet
         */
-      var snippetImg = createElement("img", "snippetImgClass");
-      snippetImg.src = searchResults.businesses[i].snippet_image_url;
+      var snippetImg = createElement("img", "snippetImgClass", "snippetImg"+i);
       document.getElementById("snippetTextDiv"+i).appendChild(snippetImg);
       
       /** snippetContainer is the div that contains snippetText
@@ -364,16 +366,8 @@ function displayResults(searchResults) {
       /** snippetText is the snippet of the yelp review that has been
         * shortened with slice to only include 61 chars.
         */
-      var snippetText = createElement("p", "snippetTextClass", "snippetText"+i, searchResults.businesses[i].snippet_text.slice(0,60));
+      var snippetText = createElement("p", "snippetTextClass", "snippetText"+i);
       document.getElementById("snippetContainer"+i).appendChild(snippetText);
-
-      /** readMoreLink adds a link to the business yelp page at
-        * the end of snippetText.
-        */
-      var readMoreLink = createElement("a", "readMoreLinkClass", "", "...read more");
-      readMoreLink.href = searchResults.businesses[i].url;
-      readMoreLink.target = "_blank";
-      document.getElementById("snippetText"+i).appendChild(readMoreLink);
       
       /** btnAddToRoute is a button that runs function addStop() when
         * clicked.
@@ -385,4 +379,31 @@ function displayResults(searchResults) {
       });
       document.getElementById("businessNameDiv"+i).appendChild(btnAddToRoute);
   }
+}
+
+/** populateResults(searchResults) populates the format created
+  * by displayResults(searchResults)
+  */
+function populateResults(searchResults) {
+  for (var i = 0; i < searchResults.businesses.length; i++) {
+    document.getElementById("yelpImg"+i).src = searchResults.businesses[i].image_url;
+    document.getElementById("business"+i).innerHTML = searchResults.businesses[i].name;
+    document.getElementById("business"+i).href = searchResults.businesses[i].url;
+    document.getElementById("rating"+i).src = searchResults.businesses[i].rating_img_url;
+    document.getElementById("reviewCount"+i).innerHTML = searchResults.businesses[i].review_count + " reviews"
+    document.getElementById("snippetImg"+i).src = searchResults.businesses[i].snippet_image_url;
+    document.getElementById("snippetText"+i).innerHTML = searchResults.businesses[i].snippet_text.slice(0,60);
+      /** readMoreLink adds a link to the business yelp page at
+        * the end of snippetText.
+        */
+      var readMoreLink = createElement("a", "readMoreLinkClass", "readMoreLink"+i, "...read more");
+      readMoreLink.href = searchResults.businesses[i].url;
+      readMoreLink.target = "_blank";
+      document.getElementById("snippetText"+i).appendChild(readMoreLink);
+  }
+}
+
+function sortResults() {
+  var sortBy = document.getElementById("select").value;
+  console.log(sortBy);
 }
