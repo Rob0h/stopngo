@@ -220,7 +220,6 @@ function getYelp() {
         setTimeout(function() {
           markers[stopToSearch-1].setAnimation(null);
         }, 1000);
-        
       }
     }
   xmlhttp.send();
@@ -250,6 +249,8 @@ function saveRoute(routeNum) {
   xmlhttp.send(saveContent);
 }
 
+/** getRoute(routeNum) retrieves route from routes.txt
+  */ 
 function getRoute(routeNum) {
   xmlhttp = new XMLHttpRequest();
   xmlhttp.open("GET","/search?route=" + val, true);
@@ -313,7 +314,9 @@ function displayResults(searchResults) {
         /*yelpImage is the yelp business image
         */
         var yelpImage = createElement("img", "", "yelpImg"+i);
+        var yelpImageSpan = createElement("span", "", "span"+i);
         document.getElementById("yelpImageContainer"+i).appendChild(yelpImage);
+        document.getElementById("yelpImageContainer"+i).appendChild(yelpImageSpan);
       
       /** businessDiv holds businessnameDiv, ratingDiv,
         * and snippetTextDiv.
@@ -377,7 +380,7 @@ function displayResults(searchResults) {
       btnAddToRoute.addEventListener("click", function () {
         addStop(this.value);
       });
-      document.getElementById("businessNameDiv"+i).appendChild(btnAddToRoute);
+      document.getElementById("span"+i).appendChild(btnAddToRoute);
   }
 }
 
@@ -392,18 +395,24 @@ function populateResults(searchResults) {
     document.getElementById("rating"+i).src = searchResults.businesses[i].rating_img_url;
     document.getElementById("reviewCount"+i).innerHTML = searchResults.businesses[i].review_count + " reviews"
     document.getElementById("snippetImg"+i).src = searchResults.businesses[i].snippet_image_url;
-    document.getElementById("snippetText"+i).innerHTML = searchResults.businesses[i].snippet_text.slice(0,60);
+    document.getElementById("snippetText"+i).innerHTML = searchResults.businesses[i].snippet_text.slice(0,65);
       /** readMoreLink adds a link to the business yelp page at
         * the end of snippetText.
         */
-      var readMoreLink = createElement("a", "readMoreLinkClass", "readMoreLink"+i, "...read more");
+      var readMoreLink = createElement("a", "readMoreLinkClass", "readMoreLink"+i, " ...read more");
       readMoreLink.href = searchResults.businesses[i].url;
       readMoreLink.target = "_blank";
       document.getElementById("snippetText"+i).appendChild(readMoreLink);
   }
 }
 
-function sortResults() {
-  var sortBy = document.getElementById("select").value;
-  console.log(sortBy);
+/** sortResults(searchResults) sorts the results to be descending
+  * based on review_count
+  */
+function sortResults(searchResults) {
+  searchResults.businesses.sort(function(a,b) {
+    return b.review_count-a.review_count;
+  });
+  console.log(searchResults);
+  populateResults(searchResults);
 }

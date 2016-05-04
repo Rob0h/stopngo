@@ -57,6 +57,19 @@ html, body {
   width: 410px;
   overflow: auto;
 }
+.yelpImageContainerClass {
+  position: relative;
+}
+.yelpImageContainerClass span{
+  display: none; 
+}
+.yelpImageContainerClass:hover span{
+  position: absolute;
+  display: block;
+  z-index: 99;
+  top: 35%;
+  left: 2%;
+}
 #resultsContent {
   width: 400px;
 }
