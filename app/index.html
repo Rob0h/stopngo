@@ -15,12 +15,13 @@
       <input type= "button" value= "Get Directions" onclick= "getDirections()">
       </div>
     </div>
-    <div id="textDirContainer">
-      <div id= "textDirections"> </div>
+    <!--<div id="textDirContainer">
+      <div id= "textDirections"> </div>-->
     </div>
     <div id= "inputAndResultsDiv">
       <div id= "inputDir">
-        <img id = "yelpImage" src="https://s3-media3.fl.yelpcdn.com/assets/srv0/developer_pages/25e99875a798/assets/img/yelp_powered_btn_red@2x.png"> <br>
+        <img id = "yelpImage" src="https://s3-media3.fl.yelpcdn.com/assets/srv0/developer_pages/25e99875a798/assets/img/yelp_powered_btn_red@2x.png"> 
+        <br>
         <p> Number of stops <input id="numOfStops" type= "number" value= 1 class="numBox"> 
         <input type= "button" value= "Calculate Stops" onclick= "getStoppoints()"> </p>
         <p> 
@@ -28,6 +29,20 @@
           at stop # <input id="stopToSearch" type= "number" value= 1 class="numBox"> 
           <input type="button" value="Go!" onclick="getYelp()">
           <input type="button" value="Save" onclick="saveRoute()">
+        </p>
+        <p> Sort by: 
+          <select id = "sortBy">
+            <option value = 0> Default </option>
+            <option value = 1> Distance </option>
+            <option value = 2> Rating </option>
+          </select>
+          <input type="button" value="Sort By Review Count" onclick="sortResults(yelpResults)">
+          <select id = "filterStars">
+            <option value = 5> 5 Star </option>
+            <option value = 4> 4 Star + </option>
+            <option value = 3> 3 Star + </option>
+          </select>
+          <input type="button" value="Test" onclick="filterResults(yelpResults)">
         </p>
       </div>
       <div id= "resultsContainer">

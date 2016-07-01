@@ -4,10 +4,16 @@ var geocoder;
 var directionsDisplay;
 var start;
 var stop;
+/* Array to hold all markers
+ */
 var markers = [];
 var stopPoints;
 var directionsResults;
+
+/** yelpResults holds the results from the yelp query
+  */
 var yelpResults;
+
 var wayPoints = [];
 
 /** loadApp() requests the google maps API key from config.txt and 
@@ -23,9 +29,10 @@ function loadApp() {
       gMapsKey = xmlhttp.responseText;
       gMaps.src = "https://maps.googleapis.com/maps/api/js?key=" + gMapsKey + "&callback=initMap";
       document.getElementsByTagName("body")[0].appendChild(gMaps);
-      initMap();
+      gMaps.onload = function () {
+        initMap();
+      }
     }
-    else console.log("Google Maps failed to load.");
   };
   xmlhttp.send();
 }
@@ -37,7 +44,10 @@ function loadApp() {
 function initMap() {
   geocoder = new google.maps.Geocoder();
   router = new google.maps.DirectionsService();
-  directionsDisplay = new google.maps.DirectionsRenderer();
+  directionsDisplay = new google.maps.DirectionsRenderer({
+    suppressInfoWindows: true,
+    suppressMarkers: true
+  });
   var latlng = new google.maps.LatLng(33.662004, -117.82090700000003);
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(position) {
@@ -55,17 +65,36 @@ function initMap() {
   directionsDisplay.setMap(map);
 }
 
-/** clearMarkers() iterates through the markers array and uses 
-  * setMap() to erase its presence from the map and also clears the
-  * entire markers array.
+/** clearMarkers(saveMarkers) iterates through the markers array and 
+  * saveMarkers array backwards and removes markers which index is not found
+  * in the saveMarkers array. If found, j is decremented.
   */
-function clearMarkers() {
-  if (markers.length > 0) {
-    for (var i = 0; i < markers.length; i ++) {
-      markers[i].setMap(null);
-    }
-    markers = [];
+function clearMarkers(saveMarkers) {
+  if (typeof(saveMarkers) == "undefined") {
+    var keepMarkers = false;
   }
+  else {
+    var keepMarkers = true;
+    var j = saveMarkers.length-1;
+  }
+  if (markers.length > 0) {
+    for (var i = markers.length-1; i > -1; i--) {
+      if (keepMarkers) {
+          if (saveMarkers[j] == i) {
+            j--;
+          }
+          else {
+            markers[i].setMap(null);
+            markers.splice(i,1);
+          }
+      }
+      else {
+        markers[i].setMap(null);
+        markers.splice(i,1);
+      }
+    }
+  }
+  console.log(markers);
 }
 
 /** getDirections(waypts) creates a request object which is passed 
@@ -89,15 +118,40 @@ function getDirections(waypts) {
   };
   router.route(request, function(results, status){
     if (status == google.maps.DirectionsStatus.OK) {
-      console.log(results);
+      getGeocode(start, function(location) {
+        createMarker(location, "Start: " + start);
+      });
+      console.log("added in start" + markers);
+      getGeocode(stop, function(location) {
+        createMarker(location, "Stop: " + stop);
+      });
+      console.log("added in stop" + markers);
       directionsResults = results;
       directionsDisplay.setDirections(results);
-      directionsDisplay.setPanel(document.getElementById("textDirections"));
+      /*directionsDisplay.setPanel(document.getElementById("textDirections"));*/
     }
     else {
        alert("Directions query was unsuccessful for the following reasons: " + status);
     }
   });
+}
+
+/* createMarker(location, text) creates a new marker object and adds it
+ * to the markers array. The text is used to populate the infoWindow that
+ * opens when the marker is clicked.
+ */
+function createMarker(location, text) {
+  var createdMarker = new google.maps.Marker({
+    position: new google.maps.LatLng(location.lat, location.lng),
+    map: map
+  });
+  var infoWindow = new google.maps.InfoWindow({
+    content: text
+  });
+  createdMarker.addListener("click", function() {
+    infoWindow.open(map, createdMarker);
+  });
+  markers.push(createdMarker);
 }
 
 /** sumOf(array, property, property1) iterates through the array
@@ -106,16 +160,9 @@ function getDirections(waypts) {
   */
 function sumOf(array, property, property1) {
   var sum = 0;
-  for (var i = 0; i < array.length; i++){
-    var arrayVal = array[i];
-    if (property) {
-      var arrayVal = arrayVal[property];
-      if (property1) {
-        var arrayVal = arrayVal[property1];
-      }
-    }
-    sum += arrayVal;
-  }
+  array.forEach(function(element, index, array) {
+    sum += element[property][property1];
+  })
   return sum;
 }
 
@@ -135,63 +182,85 @@ function getStoppoints() {
   if (typeof directionsResults == 'undefined') {
     alert('Please get directions before checking for stops.');
   }
-  clearMarkers();
-  var totalDistance = sumOf(directionsResults.routes[0].legs, "distance", "value");
-  var numOfStops = Number(document.getElementById('numOfStops').value);
-  var stops = [];
-  for (var i = 1; i < numOfStops+1; i++) {
-    stops.push((totalDistance/(numOfStops+1))*i);
-  }
-  var distanceTraveled = 0;
-  var steps = []; 
-  for (var i = 0; i < directionsResults.routes[0].legs.length; i++) {
-    for (var j = 0; j < directionsResults.routes[0].legs[i].steps.length; j++) {
-    steps.push(directionsResults.routes[0].legs[i].steps[j]);
-    }
-  }
-  var i = 0;
-  var j = 0;
-  for (var k = 0; k < numOfStops; k++) {
-    distanceToTravel = stops[k];
-    while (distanceTraveled < distanceToTravel) {
-      var pathDistance = steps[i].distance.value/(steps[i].path.length);
-      distanceTraveled += pathDistance;
-      if (j < steps[i].path.length-1) {
-        j++;
-      }
-      else if (j == steps[i].path.length-1 && i < steps.length){
-        i++;
-        j = 0;
-      }
-    }
-    markers.push(new google.maps.Marker({
-      position: steps[i].path[j],
-      map: map,
-      draggable: true,
-      animation: google.maps.Animation.DROP,
-      label: (k+1).toString()
-    }));
-    var infoWindow = new google.maps.InfoWindow({
-    });
-    markers[k].addListener("click", function() {
-      reverseGeocode(this.position, infoWindow);
-      infoWindow.open(map, this);
-    });
-    markers[k].addListener("dragend", function() {
-      reverseGeocode(this.position, infoWindow);
-      infoWindow.open(map, this);
-    });
+  else {
+        clearMarkers([0,1]);
+        var totalDistance = sumOf(directionsResults.routes[0].legs, "distance", "value");
+        var numOfStops = Number(document.getElementById('numOfStops').value);
+        var stops = [];
+        for (var i = 1; i < numOfStops+1; i++) {
+          stops.push((totalDistance/(numOfStops+1))*i);
+        }
+        var distanceTraveled = 0;
+        var steps= []; 
+        for (var i = 0; i < directionsResults.routes[0].legs.length; i++) {
+          steps= steps.concat(directionsResults.routes[0].legs[i].steps);
+        }
+        var i = 0;
+        var j = 0;
+        for (var k = 0; k < numOfStops; k++) {
+          distanceToTravel = stops[k];
+          while (distanceTraveled < distanceToTravel) {
+            var pathDistance = steps[i].distance.value/(steps[i].path.length);
+            distanceTraveled += pathDistance;
+            if (j < steps[i].path.length-1) {
+              j++;
+            }
+            else if (j == steps[i].path.length-1 && i < steps.length){
+              i++;
+              j = 0;
+            }
+          }
+          /*console.log(steps[i].path[j]);
+          reverseGeocode(steps[i].path[j], function(location) {
+            createMarker(steps[i].path[j], "Stop # " + k+1 + location);
+          });
+          createMarker(steps[i].path[j], "Stop");*/
+          markers.push(new google.maps.Marker({
+            position: steps[i].path[j],
+            map: map,
+            draggable: true,
+            animation: google.maps.Animation.DROP,
+            label: (k+1).toString()
+          }));
+          var infoWindow = new google.maps.InfoWindow({
+          });
+          markers[k].addListener("click", function() {
+            reverseGeocode(this.position, infoWindow);
+            infoWindow.open(map, this);
+          });
+          markers[k].addListener("dragend", function() {
+            reverseGeocode(this.position, infoWindow);
+            infoWindow.open(map, this);
+          });
+        }
   }
 }
 
-/** getGeocode(inputGeocode, infoWindow) retrieves the 
+/** getGeocode(inputAddress)
+  */
+function getGeocode(inputAddress, callback) {
+  geocoder.geocode({'address': inputAddress}, function(results, status) {
+    if (status == google.maps.GeocoderStatus.OK) {
+      callback ({
+        lat: results[0].geometry.location.lat(),
+        lng: results[0].geometry.location.lng()
+      });
+    }
+  });
+}
+
+/** reverseGeocode(inputGeocode, infoWindow) retrieves the 
   * formatted_address of the inputGeocode and sets the infoWindow
   * to display the returned address.
   */
-function reverseGeocode(inputGeocode, infoWindow) {
+function reverseGeocode(inputGeocode, callback) {
   geocoder.geocode( { 'location': inputGeocode}, function(results, status) {
     if (status == google.maps.GeocoderStatus.OK) {
-      infoWindow.setContent(results[0].formatted_address);
+      callback(
+        results[0].formatted_address
+      );
+      /**var contentString = "<p> Business Name </p>" + results[0].formatted_address;
+      infoWindow.setContent(contentString);*/
      } 
     else {
       alert("Geocode was not successful for the following reason: " + status);
@@ -207,21 +276,22 @@ function reverseGeocode(inputGeocode, infoWindow) {
 function getYelp() {
   xmlhttp = new XMLHttpRequest();
   var yelpSearchTerm = document.getElementById("yelpSearchTerm").value;
-  var stopToSearch = document.getElementById("stopToSearch").value;
-  if (stopToSearch > markers.length || stopToSearch == 0 || stopToSearch < 0) {
+  var stopToSearch = Number(document.getElementById("stopToSearch").value);
+  if (stopToSearch+1 > markers.length-1 || stopToSearch <= 0 || typeof stopToSearch == "undefined") {
     alert("Stop does not exist. Please select another stop.");
   }
   else { 
-    markers[stopToSearch-1].setAnimation(google.maps.Animation.BOUNCE);
-    xmlhttp.open("GET","/search?query=" + yelpSearchTerm + "+" + markers[stopToSearch-1].position.lat() + "," + markers[stopToSearch-1].position.lng(), true);
+    var sortVal = document.getElementById("sortBy").value;
+    markers[stopToSearch+1].setAnimation(google.maps.Animation.BOUNCE);
+    xmlhttp.open("GET","/search?query=" + yelpSearchTerm + "+" + markers[stopToSearch+1].position.lat() + "," + markers[stopToSearch+1].position.lng() + "+" + sortVal, true);
     xmlhttp.onreadystatechange = function () { 
       if (xmlhttp.readyState == 4 && xmlhttp.status == 200){
         yelpResults = JSON.parse(xmlhttp.responseText);
-        displayResults(JSON.parse(xmlhttp.responseText));
+        displayResults(yelpResults);
+        populateResults(yelpResults);
         setTimeout(function() {
-          markers[stopToSearch-1].setAnimation(null);
+          markers[stopToSearch+1].setAnimation(null);
         }, 1000);
-        
       }
     }
   xmlhttp.send();
@@ -251,6 +321,8 @@ function saveRoute(routeNum) {
   xmlhttp.send(saveContent);
 }
 
+/** getRoute(routeNum) retrieves route from routes.txt
+  */ 
 function getRoute(routeNum) {
   xmlhttp = new XMLHttpRequest();
   xmlhttp.open("GET","/search?route=" + val, true);
@@ -276,7 +348,11 @@ function addStop(stopNumber) {
   };
   wayPoints.push({
     location: stopAddress,
-    stopover: true});
+    stopover: true
+  });
+  getGeocode(stopAddress, function(location) {
+    createMarker(location, yelpResults.businesses[stopNumber].name);
+  })
   getDirections(wayPoints);
 }
 
@@ -293,9 +369,14 @@ function createElement(elementType, className, id, innerHTML) {
 }
 
 /** displayResults(searchResults) displays the searchResults
-  * in the resultsContent div in resultsContainer.
+  * in the resultsContent div in resultsContainer. If the searchResults
+  * is of a different length than previously input, the divs are re-
+  * created based on the length of searchResults and populateResults is run.
+  * However, if the length is the same, the function immediately runs
+  * populateResults().
   */
 function displayResults(searchResults) { 
+  if (!document.getElementById(searchResults.length-1)) {
   while (document.getElementById("resultsContent").firstChild) {
     document.getElementById("resultsContent").removeChild(document.getElementById("resultsContent").firstChild);
   }
@@ -313,9 +394,10 @@ function displayResults(searchResults) {
 
         /*yelpImage is the yelp business image
         */
-        var yelpImage = createElement("img");
-        yelpImage.src = searchResults.businesses[i].image_url;
+        var yelpImage = createElement("img", "", "yelpImg"+i);
+        var yelpImageSpan = createElement("span", "", "span"+i);
         document.getElementById("yelpImageContainer"+i).appendChild(yelpImage);
+        document.getElementById("yelpImageContainer"+i).appendChild(yelpImageSpan);
       
       /** businessDiv holds businessnameDiv, ratingDiv,
         * and snippetTextDiv.
@@ -340,27 +422,24 @@ function displayResults(searchResults) {
         * a link to the business' yelp page.
         */ 
       var businessName = createElement("a","","business"+i, searchResults.businesses[i].name);
-      businessName.href = searchResults.businesses[i].url;
       businessName.target = "_blank";
       document.getElementById("businessNameDiv"+i).appendChild(businessName);
       
       /** rating is the yelp review stars image from the returned 
         * searchResults object.
         */
-      var rating = createElement("img", "ratingClass");
-      rating.src = searchResults.businesses[i].rating_img_url;
+      var rating = createElement("img", "ratingClass", "rating"+i);
       document.getElementById("ratingDiv"+i).appendChild(rating);
 
       /** reviewCount is a p element holding the number of yelp
         * reviews of the business.
         */
-      var reviewCount = createElement("p", "reviewCountClass", "", searchResults.businesses[i].review_count + " reviews");
+      var reviewCount = createElement("p", "reviewCountClass", "reviewCount"+i, searchResults.businesses[i].review_count + " reviews");
       document.getElementById("ratingDiv"+i).appendChild(reviewCount);
 
       /** snippetImg is the image of the yelp review snippet
         */
-      var snippetImg = createElement("img", "snippetImgClass");
-      snippetImg.src = searchResults.businesses[i].snippet_image_url;
+      var snippetImg = createElement("img", "snippetImgClass", "snippetImg"+i);
       document.getElementById("snippetTextDiv"+i).appendChild(snippetImg);
       
       /** snippetContainer is the div that contains snippetText
@@ -371,16 +450,8 @@ function displayResults(searchResults) {
       /** snippetText is the snippet of the yelp review that has been
         * shortened with slice to only include 61 chars.
         */
-      var snippetText = createElement("p", "snippetTextClass", "snippetText"+i, searchResults.businesses[i].snippet_text.slice(0,60));
+      var snippetText = createElement("p", "snippetTextClass", "snippetText"+i);
       document.getElementById("snippetContainer"+i).appendChild(snippetText);
-
-      /** readMoreLink adds a link to the business yelp page at
-        * the end of snippetText.
-        */
-      var readMoreLink = createElement("a", "readMoreLinkClass", "", "...read more");
-      readMoreLink.href = searchResults.businesses[i].url;
-      readMoreLink.target = "_blank";
-      document.getElementById("snippetText"+i).appendChild(readMoreLink);
       
       /** btnAddToRoute is a button that runs function addStop() when
         * clicked.
@@ -390,6 +461,60 @@ function displayResults(searchResults) {
       btnAddToRoute.addEventListener("click", function () {
         addStop(this.value);
       });
-      document.getElementById("businessNameDiv"+i).appendChild(btnAddToRoute);
+      document.getElementById("span"+i).appendChild(btnAddToRoute);
   }
+    populateResults(searchResults);
+  }
+  /** Runs populateResults if the length of searchResults is the 
+    * same as the previous instance.
+    */
+  else {
+    populateResults(searchResults);
+  }
+}
+
+/** populateResults(searchResults) populates the format created
+  * by displayResults(searchResults)
+  */
+function populateResults(searchResults) {
+  for (var i = 0; i < searchResults.businesses.length; i++) {
+    document.getElementById("yelpImg"+i).src = searchResults.businesses[i].image_url;
+    document.getElementById("business"+i).innerHTML = searchResults.businesses[i].name;
+    document.getElementById("business"+i).href = searchResults.businesses[i].url;
+    document.getElementById("rating"+i).src = searchResults.businesses[i].rating_img_url;
+    document.getElementById("reviewCount"+i).innerHTML = searchResults.businesses[i].review_count + " reviews"
+    document.getElementById("snippetImg"+i).src = searchResults.businesses[i].snippet_image_url;
+    document.getElementById("snippetText"+i).innerHTML = searchResults.businesses[i].snippet_text.slice(0,65);
+      /** readMoreLink adds a link to the business yelp page at
+        * the end of snippetText.
+        */
+      var readMoreLink = createElement("a", "readMoreLinkClass", "readMoreLink"+i, " ...read more");
+      readMoreLink.href = searchResults.businesses[i].url;
+      readMoreLink.target = "_blank";
+      document.getElementById("snippetText"+i).appendChild(readMoreLink);
+  }
+}
+
+/** sortResults(searchResults) sorts the results to be descending
+  * based on review_count
+  */
+function sortResults(searchResults) {
+  searchResults.businesses.sort(function(a,b) {
+    return b.review_count-a.review_count;
+  });
+  console.log(searchResults);
+  populateResults(searchResults);
+}
+
+/** filterResults(searchResults) filteres the results based on the
+  * user selected value of filterStars
+  */
+function filterResults(searchResults) {
+  var filterVal = document.getElementById("filterStars").value;
+  var filteredYelp = {
+    businesses: searchResults.businesses.filter(function(business) {
+      return business.rating >= filterVal;
+    })
+  };
+  displayResults(filteredYelp);
 }
