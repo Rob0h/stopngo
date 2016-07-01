@@ -11,7 +11,20 @@ var http = require('http');
 function searchYelpFor(searchTerms, callback) {
   fs.readFile("./config.txt", "utf-8", function(err, file) {
     if (err) {
-      console.log("Yelp API keys were unable to be read due to:" + err);
+      //console.log("Yelp API keys were unable to be read due to:" + err);
+      var yelp = new Yelp({
+        consumer_key: process.env.consumer_key,
+        consumer_secret: process.env.consumer_secret,
+        token: process.env.token,
+        token_secret: process.env.token_secret
+      });
+      yelp.search(searchTerms)
+        .then(function(data) {
+        console.log("Yelp results returned.")
+        callback(data);
+      }).catch(function(err) {
+        console.error(err); 
+      });
     }
     else {
       var appKeys = JSON.parse(file);
@@ -50,7 +63,11 @@ var server = http.createServer(function(request, response) {
     else if (path == "/gMapsKey") {
       fs.readFile("./config.txt", function(err,file) {
         if(err) {
-          console.log("Google Maps API key was unable to be read due to: " + err);
+          //console.log("Google Maps API key was unable to be read due to: " + err);
+          //enable read from heroku config var
+          var gMapsKey = process.env.gMapsKey;
+          response.writeHead(200, {"Content-Type": "json"});
+          response.end(gMapsKey, "utf-8");
         }
         else {
           var appKeys = JSON.parse(file);

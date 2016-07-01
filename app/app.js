@@ -285,6 +285,8 @@ function getYelp() {
     markers[stopToSearch+1].setAnimation(google.maps.Animation.BOUNCE);
     xmlhttp.open("GET","/search?query=" + yelpSearchTerm + "+" + markers[stopToSearch+1].position.lat() + "," + markers[stopToSearch+1].position.lng() + "+" + sortVal, true);
     xmlhttp.onreadystatechange = function () { 
+    xmlhttp.open("GET","/search?query=" + yelpSearchTerm + "+" + markers[stopToSearch-1].position.lat() + "," + markers[stopToSearch-1].position.lng(), true);
+    xmlhttp.onreadystatechange=function(){
       if (xmlhttp.readyState == 4 && xmlhttp.status == 200){
         yelpResults = JSON.parse(xmlhttp.responseText);
         displayResults(yelpResults);
@@ -295,6 +297,7 @@ function getYelp() {
       }
     }
   xmlhttp.send();
+    }
   }
 }
 
