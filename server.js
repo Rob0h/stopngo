@@ -65,7 +65,7 @@ var server = http.createServer(function(request, response) {
         if(err) {
           //console.log("Google Maps API key was unable to be read due to: " + err);
           //enable read from heroku config var
-          var gMapsKey = process.env.gMapsKey;
+          var gMapsKey = process.env.gMaps_key;
           response.writeHead(200, {"Content-Type": "json"});
           response.end(gMapsKey, "utf-8");
         }
