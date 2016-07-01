@@ -37,6 +37,12 @@
             <option value = 2> Rating </option>
           </select>
           <input type="button" value="Sort By Review Count" onclick="sortResults(yelpResults)">
+          <select id = "filterStars">
+            <option value = 5> 5 Star </option>
+            <option value = 4> 4 Star + </option>
+            <option value = 3> 3 Star + </option>
+          </select>
+          <input type="button" value="Test" onclick="filterResults(yelpResults)">
         </p>
       </div>
       <div id= "resultsContainer">

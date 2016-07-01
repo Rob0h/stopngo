@@ -4,6 +4,8 @@ var geocoder;
 var directionsDisplay;
 var start;
 var stop;
+/* Array to hold all markers
+ */
 var markers = [];
 var stopPoints;
 var directionsResults;
@@ -42,7 +44,10 @@ function loadApp() {
 function initMap() {
   geocoder = new google.maps.Geocoder();
   router = new google.maps.DirectionsService();
-  directionsDisplay = new google.maps.DirectionsRenderer();
+  directionsDisplay = new google.maps.DirectionsRenderer({
+    suppressInfoWindows: true,
+    suppressMarkers: true
+  });
   var latlng = new google.maps.LatLng(33.662004, -117.82090700000003);
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(position) {
@@ -60,17 +65,36 @@ function initMap() {
   directionsDisplay.setMap(map);
 }
 
-/** clearMarkers() iterates through the markers array and uses 
-  * setMap() to erase its presence from the map and also clears the
-  * entire markers array.
+/** clearMarkers(saveMarkers) iterates through the markers array and 
+  * saveMarkers array backwards and removes markers which index is not found
+  * in the saveMarkers array. If found, j is decremented.
   */
-function clearMarkers() {
-  if (markers.length > 0) {
-    for (var i = 0; i < markers.length; i ++) {
-      markers[i].setMap(null);
-    }
-    markers = [];
+function clearMarkers(saveMarkers) {
+  if (typeof(saveMarkers) == "undefined") {
+    var keepMarkers = false;
   }
+  else {
+    var keepMarkers = true;
+    var j = saveMarkers.length-1;
+  }
+  if (markers.length > 0) {
+    for (var i = markers.length-1; i > -1; i--) {
+      if (keepMarkers) {
+          if (saveMarkers[j] == i) {
+            j--;
+          }
+          else {
+            markers[i].setMap(null);
+            markers.splice(i,1);
+          }
+      }
+      else {
+        markers[i].setMap(null);
+        markers.splice(i,1);
+      }
+    }
+  }
+  console.log(markers);
 }
 
 /** getDirections(waypts) creates a request object which is passed 
@@ -94,14 +118,40 @@ function getDirections(waypts) {
   };
   router.route(request, function(results, status){
     if (status == google.maps.DirectionsStatus.OK) {
+      getGeocode(start, function(location) {
+        createMarker(location, "Start: " + start);
+      });
+      console.log("added in start" + markers);
+      getGeocode(stop, function(location) {
+        createMarker(location, "Stop: " + stop);
+      });
+      console.log("added in stop" + markers);
       directionsResults = results;
       directionsDisplay.setDirections(results);
-      //directionsDisplay.setPanel(document.getElementById("textDirections"));
+      /*directionsDisplay.setPanel(document.getElementById("textDirections"));*/
     }
     else {
        alert("Directions query was unsuccessful for the following reasons: " + status);
     }
   });
+}
+
+/* createMarker(location, text) creates a new marker object and adds it
+ * to the markers array. The text is used to populate the infoWindow that
+ * opens when the marker is clicked.
+ */
+function createMarker(location, text) {
+  var createdMarker = new google.maps.Marker({
+    position: new google.maps.LatLng(location.lat, location.lng),
+    map: map
+  });
+  var infoWindow = new google.maps.InfoWindow({
+    content: text
+  });
+  createdMarker.addListener("click", function() {
+    infoWindow.open(map, createdMarker);
+  });
+  markers.push(createdMarker);
 }
 
 /** sumOf(array, property, property1) iterates through the array
@@ -133,7 +183,7 @@ function getStoppoints() {
     alert('Please get directions before checking for stops.');
   }
   else {
-        clearMarkers();
+        clearMarkers([0,1]);
         var totalDistance = sumOf(directionsResults.routes[0].legs, "distance", "value");
         var numOfStops = Number(document.getElementById('numOfStops').value);
         var stops = [];
@@ -141,9 +191,9 @@ function getStoppoints() {
           stops.push((totalDistance/(numOfStops+1))*i);
         }
         var distanceTraveled = 0;
-        var steps = []; 
+        var steps= []; 
         for (var i = 0; i < directionsResults.routes[0].legs.length; i++) {
-          steps = steps.concat(directionsResults.routes[0].legs[i].steps);
+          steps= steps.concat(directionsResults.routes[0].legs[i].steps);
         }
         var i = 0;
         var j = 0;
@@ -160,6 +210,11 @@ function getStoppoints() {
               j = 0;
             }
           }
+          /*console.log(steps[i].path[j]);
+          reverseGeocode(steps[i].path[j], function(location) {
+            createMarker(steps[i].path[j], "Stop # " + k+1 + location);
+          });
+          createMarker(steps[i].path[j], "Stop");*/
           markers.push(new google.maps.Marker({
             position: steps[i].path[j],
             map: map,
@@ -181,14 +236,31 @@ function getStoppoints() {
   }
 }
 
-/** getGeocode(inputGeocode, infoWindow) retrieves the 
+/** getGeocode(inputAddress)
+  */
+function getGeocode(inputAddress, callback) {
+  geocoder.geocode({'address': inputAddress}, function(results, status) {
+    if (status == google.maps.GeocoderStatus.OK) {
+      callback ({
+        lat: results[0].geometry.location.lat(),
+        lng: results[0].geometry.location.lng()
+      });
+    }
+  });
+}
+
+/** reverseGeocode(inputGeocode, infoWindow) retrieves the 
   * formatted_address of the inputGeocode and sets the infoWindow
   * to display the returned address.
   */
-function reverseGeocode(inputGeocode, infoWindow) {
+function reverseGeocode(inputGeocode, callback) {
   geocoder.geocode( { 'location': inputGeocode}, function(results, status) {
     if (status == google.maps.GeocoderStatus.OK) {
-      infoWindow.setContent(results[0].formatted_address);
+      callback(
+        results[0].formatted_address
+      );
+      /**var contentString = "<p> Business Name </p>" + results[0].formatted_address;
+      infoWindow.setContent(contentString);*/
      } 
     else {
       alert("Geocode was not successful for the following reason: " + status);
@@ -204,21 +276,21 @@ function reverseGeocode(inputGeocode, infoWindow) {
 function getYelp() {
   xmlhttp = new XMLHttpRequest();
   var yelpSearchTerm = document.getElementById("yelpSearchTerm").value;
-  var stopToSearch = document.getElementById("stopToSearch").value;
-  if (stopToSearch > markers.length || stopToSearch == 0 || stopToSearch < 0) {
+  var stopToSearch = Number(document.getElementById("stopToSearch").value);
+  if (stopToSearch+1 > markers.length-1 || stopToSearch <= 0 || typeof stopToSearch == "undefined") {
     alert("Stop does not exist. Please select another stop.");
   }
   else { 
     var sortVal = document.getElementById("sortBy").value;
-    markers[stopToSearch-1].setAnimation(google.maps.Animation.BOUNCE);
-    xmlhttp.open("GET","/search?query=" + yelpSearchTerm + "+" + markers[stopToSearch-1].position.lat() + "," + markers[stopToSearch-1].position.lng() + "+" + sortVal, true);
+    markers[stopToSearch+1].setAnimation(google.maps.Animation.BOUNCE);
+    xmlhttp.open("GET","/search?query=" + yelpSearchTerm + "+" + markers[stopToSearch+1].position.lat() + "," + markers[stopToSearch+1].position.lng() + "+" + sortVal, true);
     xmlhttp.onreadystatechange = function () { 
       if (xmlhttp.readyState == 4 && xmlhttp.status == 200){
         yelpResults = JSON.parse(xmlhttp.responseText);
         displayResults(yelpResults);
         populateResults(yelpResults);
         setTimeout(function() {
-          markers[stopToSearch-1].setAnimation(null);
+          markers[stopToSearch+1].setAnimation(null);
         }, 1000);
       }
     }
@@ -276,7 +348,11 @@ function addStop(stopNumber) {
   };
   wayPoints.push({
     location: stopAddress,
-    stopover: true});
+    stopover: true
+  });
+  getGeocode(stopAddress, function(location) {
+    createMarker(location, yelpResults.businesses[stopNumber].name);
+  })
   getDirections(wayPoints);
 }
 
@@ -293,9 +369,14 @@ function createElement(elementType, className, id, innerHTML) {
 }
 
 /** displayResults(searchResults) displays the searchResults
-  * in the resultsContent div in resultsContainer.
+  * in the resultsContent div in resultsContainer. If the searchResults
+  * is of a different length than previously input, the divs are re-
+  * created based on the length of searchResults and populateResults is run.
+  * However, if the length is the same, the function immediately runs
+  * populateResults().
   */
 function displayResults(searchResults) { 
+  if (!document.getElementById(searchResults.length-1)) {
   while (document.getElementById("resultsContent").firstChild) {
     document.getElementById("resultsContent").removeChild(document.getElementById("resultsContent").firstChild);
   }
@@ -382,6 +463,14 @@ function displayResults(searchResults) {
       });
       document.getElementById("span"+i).appendChild(btnAddToRoute);
   }
+    populateResults(searchResults);
+  }
+  /** Runs populateResults if the length of searchResults is the 
+    * same as the previous instance.
+    */
+  else {
+    populateResults(searchResults);
+  }
 }
 
 /** populateResults(searchResults) populates the format created
@@ -415,4 +504,17 @@ function sortResults(searchResults) {
   });
   console.log(searchResults);
   populateResults(searchResults);
+}
+
+/** filterResults(searchResults) filteres the results based on the
+  * user selected value of filterStars
+  */
+function filterResults(searchResults) {
+  var filterVal = document.getElementById("filterStars").value;
+  var filteredYelp = {
+    businesses: searchResults.businesses.filter(function(business) {
+      return business.rating >= filterVal;
+    })
+  };
+  displayResults(filteredYelp);
 }
