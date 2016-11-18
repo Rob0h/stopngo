@@ -85,8 +85,8 @@ var server = http.createServer(function(request, response) {
     }
     /** Loads client side js
       */
-    else if (path == "/app/app.js") {
-      fs.readFile("./app/app.js", function(err, file){
+    else if (path == "/app/index.js") {
+      fs.readFile("./app/index.js", function(err, file){
         if (err) {
           console.log("Client side JS could not be loaded due to: " + err);
         }
