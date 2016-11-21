@@ -1,7 +1,7 @@
 var Input = (props) => (
   <div>
     <StopPoints />
-    <YelpSearch />
+    <YelpSearch getYelp={props.getYelp}/>
     <SearchSort />
   </div>
 );

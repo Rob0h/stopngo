@@ -200,10 +200,21 @@ var server = http.createServer(function(request, response) {
         }
       });
     }
-    else if (path == "/compiled/components/SearchResult.jsx") {
-      fs.readFile("../compiled/components/SearchResult.js", function(err, file){
+    else if (path == "/compiled/components/SearchResultEntry.jsx") {
+      fs.readFile("../compiled/components/SearchResultEntry.js", function(err, file){
         if (err) {
-          console.log("YelpSearch component could not be loaded due to: " + err);
+          console.log("SearchResultEntry component could not be loaded due to: " + err);
+        }
+        else {
+          response.writeHead(200, {"Content-Type": 'json'});
+          response.end(file, "utf-8");
+        }
+      });
+    }
+    else if (path == "/exampleData.js") {
+      fs.readFile("../exampleData.js", function(err, file){
+        if (err) {
+          console.log("ExampleData could not be loaded due to: " + err);
         }
         else {
           response.writeHead(200, {"Content-Type": 'json'});
