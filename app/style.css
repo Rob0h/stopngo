@@ -42,8 +42,9 @@ html, body {
   width: 129px;
 }
 #inputDir {
-  width: 400px;
-  height: 151px;
+  width: 410px;
+  height: 123px;
+  float: right;
 }
 .numBox {
   width: 20px;

@@ -1,5 +1,5 @@
 var StopPoints = (props) => (
-  <p>Number of Stops<input id="numOfStops" type= "number" value= {1} className="numBox" /> 
+  <p>Number of Stops: <input id="numOfStops" defaultValue= '1' type= "number" className="numBox" /> 
     <input type= "button" value= "Calculate Stops" onClick= { () => getStoppoints()} /> 
   </p>
 );

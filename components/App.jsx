@@ -38,11 +38,19 @@ class App extends React.Component {
   }
 
   render() {
-    return (
-      <div>
-        <Input getYelp={this.getYelp.bind(this)}/>
-        <Results searchedResults={this.state.searchedResults ? this.state.searchedResults : exampleData}/>
-      </div>
-    )
+    if (this.state.searchedResults !== null) {
+      return (
+        <div>
+          <Input getYelp={this.getYelp.bind(this)}/>
+          <Results searchedResults={this.state.searchedResults}/>
+        </div>
+      )
+    } else {
+      return (
+        <div>
+          <Input getYelp={this.getYelp.bind(this)}/>
+        </div>
+      )
+    }
   }
 }

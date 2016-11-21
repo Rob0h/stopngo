@@ -1,5 +1,5 @@
 var Input = (props) => (
-  <div>
+  <div id='inputDir'>
     <StopPoints />
     <YelpSearch getYelp={props.getYelp}/>
     <SearchSort />
