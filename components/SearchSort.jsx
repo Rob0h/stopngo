@@ -5,7 +5,7 @@ var SearchSort = (props) => (
       <option value = {1}> Distance </option>
       <option value = {2}> Rating </option>
     </select>
-    <input type="button" value="Sort By Review Count" onClick={() => sortResults(yelpResults)} />
+    <input type="button" value="Sort By Review Count" onClick={() => props.sortResults()} />
     <select id = "filterStars">
       <option value = {5}> 5 Star </option>
       <option value = {4}> 4 Star + </option>

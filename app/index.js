@@ -329,17 +329,6 @@ function addStop(stopNumber) {
 }
 
 
-/** sortResults(searchResults) sorts the results to be descending
-  * based on review_count
-  */
-function sortResults(searchResults) {
-  searchResults.businesses.sort(function(a,b) {
-    return b.review_count-a.review_count;
-  });
-  console.log(searchResults);
-  populateResults(searchResults);
-}
-
 /** filterResults(searchResults) filteres the results based on the
   * user selected value of filterStars
   */

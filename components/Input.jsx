@@ -2,7 +2,7 @@ var Input = (props) => (
   <div id='inputDir'>
     <StopPoints />
     <YelpSearch getYelp={props.getYelp}/>
-    <SearchSort />
+    <SearchSort sortResults={props.sortResults}/>
   </div>
 );
 

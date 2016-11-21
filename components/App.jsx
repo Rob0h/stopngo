@@ -22,8 +22,6 @@ class App extends React.Component {
       xmlhttp.onreadystatechange = function () { 
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200){
           yelpResults = JSON.parse(xmlhttp.responseText);
-          // REMOVE 
-          console.log(yelpResults);
           context.setState({
             searchedResults: yelpResults.businesses
           });
@@ -37,11 +35,17 @@ class App extends React.Component {
     }
   }
 
+  sortResults() {
+    this.setState({
+      searchedResults: this.state.searchedResults.sort((a,b) => (b.review_count - a.review_count))
+    });
+  }
+
   render() {
     if (this.state.searchedResults !== null) {
       return (
         <div>
-          <Input getYelp={this.getYelp.bind(this)}/>
+          <Input getYelp={this.getYelp.bind(this)} sortResults={this.sortResults.bind(this)}/>
           <Results searchedResults={this.state.searchedResults}/>
         </div>
       )
