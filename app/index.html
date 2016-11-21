@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel = "stylesheet" href="/app/style.css">
+    <link rel ="stylesheet" href="/app/style.css">
     <title>Stop N Go</title>
     <meta name="viewport" content="initial-scale=1.0">
     <meta charset="utf-8">
+    <script src="node_modules/react/dist/react.js"></script>
+    <script src="node_modules/react-dom/dist/react-dom.js"></script>
   </head>
     <body onload= "loadApp()">
     <div id= "mapContainer">
@@ -18,7 +20,7 @@
     <!--<div id="textDirContainer">
       <div id= "textDirections"> </div>-->
     </div>
-    <div id= "inputAndResultsDiv">
+<!--     <div id= "inputAndResultsDiv">
       <div id= "inputDir">
         <img id = "yelpImage" src="https://s3-media3.fl.yelpcdn.com/assets/srv0/developer_pages/25e99875a798/assets/img/yelp_powered_btn_red@2x.png"> 
         <br>
@@ -44,13 +46,20 @@
           </select>
           <input type="button" value="Test" onclick="filterResults(yelpResults)">
         </p>
-      </div>
-      <div id= "resultsContainer">
+      </div> -->
+      <div id= "app"></div>
+<!--       <div id= "resultsContainer">
         <div id= "resultsContent">
         </div>
       </div>
-    </div>
-    <script src="/app/index.js"> 
-    </script>
+    </div> -->
+    <script src="/compiled/components/SearchResult.jsx"></script>
+    <script src="/compiled/components/YelpSearch.jsx"></script>
+    <script src="/compiled/components/StopPoints.jsx"></script>
+    <script src="/compiled/components/SearchSort.jsx"></script>
+    <script src="/compiled/components/Results.jsx"></script>
+    <script src="/compiled/components/Input.jsx"></script>
+    <script src="/compiled/components/App.jsx"></script>
+    <script src="/compiled/app/index.js"></script>
   </body>
 </html>

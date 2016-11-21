@@ -63,6 +63,7 @@ function initMap() {
   }
   map = new google.maps.Map(document.getElementById('map'), mapOptions);
   directionsDisplay.setMap(map);
+  ReactDOM.render(<App />, document.getElementById('app'));
 }
 
 /** clearMarkers(saveMarkers) iterates through the markers array and 
@@ -198,7 +199,7 @@ function getStoppoints() {
         var i = 0;
         var j = 0;
         for (var k = 0; k < numOfStops; k++) {
-          distanceToTravel = stops[k];
+          var distanceToTravel = stops[k];
           while (distanceTraveled < distanceToTravel) {
             var pathDistance = steps[i].distance.value/(steps[i].path.length);
             distanceTraveled += pathDistance;
@@ -274,7 +275,7 @@ function reverseGeocode(inputGeocode, callback) {
   * displayResults().
   */
 function getYelp() {
-  xmlhttp = new XMLHttpRequest();
+  var xmlhttp = new XMLHttpRequest();
   var yelpSearchTerm = document.getElementById("yelpSearchTerm").value;
   var stopToSearch = Number(document.getElementById("stopToSearch").value);
   if (stopToSearch+1 > markers.length-1 || stopToSearch <= 0 || typeof stopToSearch == "undefined") {
