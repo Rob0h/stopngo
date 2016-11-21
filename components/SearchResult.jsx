@@ -1,17 +1,30 @@
 var SearchResult = (props) => (
-  <div className = 'yelpEntryClass'>
-    <div className = 'yelpImageContainerClass'>
+  <div className= 'yelpEntryClass'>
+    <div className= 'yelpImageContainerClass'>
       <img src= {}>
+      <button className= 'btnAddToRouteClass' onClick= {}></button>
     </div>
-    <div className = 'businessDiv'>
-      <div className = 'businessNameDiv'>
+    <div className= 'businessDiv'>
+      // holds businessName
+      <div className= 'businessNameDiv'>
         <a href= {} text={}></a>
       </div>
-      <div className = 'ratingDivClass'>
+      // holds rating and reviewCount
+      <div className= 'ratingDivClass'>
+        // rating
         <img src= {}>
+        // reviewCount
         <p text={}>
       </div>
-      <div className = 'snippetTextClass'></div>
+      // holds snippetImg and snippetContainer
+      <div className= 'snippetTextClass'>
+        // snippetImg
+        <img src= {}>
+        // snippetContainer
+        <div className= 'snippetContainerClass'>
+          <p className= 'snippetTextClass' text= {}></p>
+        </div>
+      </div>
     </div>
   </div>
 );
