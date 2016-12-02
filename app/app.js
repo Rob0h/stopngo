@@ -274,6 +274,7 @@ function reverseGeocode(inputGeocode, callback) {
   * displayResults().
   */
 function getYelp() {
+  console.log('getting yelp');
   xmlhttp = new XMLHttpRequest();
   var yelpSearchTerm = document.getElementById("yelpSearchTerm").value;
   var stopToSearch = Number(document.getElementById("stopToSearch").value);
@@ -281,13 +282,13 @@ function getYelp() {
     alert("Stop does not exist. Please select another stop.");
   }
   else { 
+    console.log('retrieved values');
     var sortVal = document.getElementById("sortBy").value;
     markers[stopToSearch+1].setAnimation(google.maps.Animation.BOUNCE);
     xmlhttp.open("GET","/search?query=" + yelpSearchTerm + "+" + markers[stopToSearch+1].position.lat() + "," + markers[stopToSearch+1].position.lng() + "+" + sortVal, true);
-    xmlhttp.onreadystatechange = function () { 
-    xmlhttp.open("GET","/search?query=" + yelpSearchTerm + "+" + markers[stopToSearch-1].position.lat() + "," + markers[stopToSearch-1].position.lng(), true);
     xmlhttp.onreadystatechange=function(){
       if (xmlhttp.readyState == 4 && xmlhttp.status == 200){
+        console.log('getting here??');
         yelpResults = JSON.parse(xmlhttp.responseText);
         displayResults(yelpResults);
         populateResults(yelpResults);
@@ -297,7 +298,6 @@ function getYelp() {
       }
     }
   xmlhttp.send();
-    }
   }
 }
 
