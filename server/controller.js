@@ -3,9 +3,9 @@ var Yelp = require('yelp');
 
 module.exports = {
   getGMapsKey: function(req, res) {
-    fs.readFile('./config.txt', function(err, file) {
+    fs.readFile('../config.txt', function(err, file) {
       if (err) {
-
+        console.log(err);
       } else {
         var appKeys = JSON.parse(file);
         var gMapsKey = appKeys.gMaps_key;
@@ -21,7 +21,7 @@ module.exports = {
     });
   },
   searchYelpFor: function(searchTerms, callback) {
-      fs.readFile("./config.txt", "utf-8", function(err, file) {
+      fs.readFile("../config.txt", "utf-8", function(err, file) {
     if (err) {
       //console.log("Yelp API keys were unable to be read due to:" + err);
       var yelp = new Yelp({
