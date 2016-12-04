@@ -11,12 +11,6 @@ module.exports = function(app, express) {
     res.sendFile('app.js', { root: __dirname + '/app' });
   });
   app.get('/gMapsKey', function(req, res) {
-    fs.readFile('./config.txt', function(err, file) {
-      if (err) {
-
-      } else {
-
-      }
-    }
-  })
+    controller.getGMapsKey(req, res);
+  });
 }

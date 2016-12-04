@@ -27,6 +27,7 @@ function loadApp() {
   xmlhttp.onreadystatechange = function() {
     if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
       gMapsKey = xmlhttp.responseText;
+      console.log(gMapsKey);
       gMaps.src = "https://maps.googleapis.com/maps/api/js?key=" + gMapsKey + "&callback=initMap";
       document.getElementsByTagName("body")[0].appendChild(gMaps);
       gMaps.onload = function () {
